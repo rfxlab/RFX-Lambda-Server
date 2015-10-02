@@ -9,8 +9,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -18,6 +16,9 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.CookieDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.util.CharsetUtil;
 
 import java.nio.charset.Charset;
@@ -61,7 +62,7 @@ public class FunctionsChannelHandler extends SimpleChannelInboundHandler<FullHtt
 					
 		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (cookieString != null) {
-			Set<Cookie> cookies = CookieDecoder.decode(cookieString);
+			Set<Cookie> cookies = ServerCookieDecoder.STRICT.decode(cookieString);
 			req.setCookies(cookies);
 		} else {
 			req.setCookies(Collections.emptySet());

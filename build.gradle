@@ -3,12 +3,6 @@ apply plugin: 'eclipse'
 
 sourceCompatibility = 1.8
 version = '1.0'
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'RFX-Lambda-Server',
-                   'Implementation-Version': version
-    }
-}
 
 repositories {
     mavenCentral()
@@ -48,14 +42,41 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
-test {
-    systemProperties 'property': 'value'
+
+
+def getClasspathStringJars() {
+	def baseFolder = 'deps/'
+    def fileNames = []
+    configurations.compile.each { File file -> fileNames.add(baseFolder + file.name) }
+    
+    def classpath = fileNames.join(" ; ")    
+    return '. ; ' + classpath + ' ; '
 }
 
-uploadArchives {
-    repositories {
-       flatDir {
-           dirs 'repos'
-       }
+// copy libs
+task rfxCopyRuntimeLibs(type: Copy) {  
+  into "build/libs/deps"  
+  from configurations.compile  
+}
+
+// copy config
+task rfxCopyConfigs(type: Copy) {  
+  into "build/libs/configs"  
+  from files('configs')
+}
+
+task buildMainJar(type: Jar) {	
+	dependsOn classes   
+    from(sourceSets.main.output) {
+        include "**"
     }
+    version = '1.0'
+    baseName = 'adsplay-server'
+    manifest {
+   		attributes ('Implementation-Title': 'ArticleParsingApiServer', 
+        			'Implementation-Version': version ,
+        			'Main-Class': 'rfx.server.lambda.LambdaHttpServer',
+        			'Class-Path' : getClasspathStringJars() 
+        			)
+	}
 }

@@ -1,7 +1,8 @@
 package rfx.server.lambda;
 
-import io.netty.handler.codec.http.Cookie;
+
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.cookie.Cookie;
 
 import java.util.List;
 import java.util.Map;
@@ -59,10 +60,20 @@ public class SimpleHttpRequest {
 	public Map<String, List<String>> getParameters() {
 		return parameters;
 	}
+	
+	public String getFirstParameter(String key) {
+		List<String> values = parameters.get(key);
+		if(values != null){
+			if(values.size() > 0){
+				return values.get(0);
+			}	
+		}		
+		return "";
+	}
 
 	public void setParameters(Map<String, List<String>> parameters) {
 		this.parameters = parameters;
-	}
+	}	
 
 	public Set<Cookie> getCookies() {
 		return cookies;
