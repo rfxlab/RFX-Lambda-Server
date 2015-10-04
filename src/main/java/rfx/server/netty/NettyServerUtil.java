@@ -174,10 +174,11 @@ public class NettyServerUtil {
             } else {
             	ch1 = publicServerBootstrap.bind(ip, port).sync().channel();
             }
-            System.out.println(String.format("Started OK HttpServer at %s:%d", ip, port));
+            System.out.println(String.format("Started OK HttpServer at %s:%d", ip, port));            
             ch1.config().setConnectTimeoutMillis(1800);            
-            ch1.closeFuture().sync();             
-            System.out.println("Shutdown...");            
+            ch1.closeFuture().sync();
+            System.out.println("Shutdown...");       
+            
         } catch (Throwable e) {
 			e.printStackTrace();
 			System.exit(1);

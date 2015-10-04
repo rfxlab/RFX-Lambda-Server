@@ -27,6 +27,9 @@ dependencies {
             , 'org.apache.httpcomponents:httpclient:4.5'
             , 'org.yaml:snakeyaml:1.14'
             , 'com.google.guava:guava:18.0'
+            
+            // Real-time web
+            , 'com.corundumstudio.socketio:netty-socketio:1.7.7'            
           
           	// deps of Boilerpipe Text Extraction library
           	, 'net.htmlparser.jericho:jericho-html:3.3'
@@ -36,6 +39,7 @@ dependencies {
           	//HTML parser
           	, 'org.jsoup:jsoup:1.8.3'          	   	
           	
+          	// built Boilerpipe lib from Ant Build
 			, fileTree(dir: 'lib', include: '**/*.jar')    
 			
     )

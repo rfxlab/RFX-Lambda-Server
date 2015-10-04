@@ -1,4 +1,4 @@
-package rfx.server.lambda;
+package rfx.server.test;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -15,6 +15,10 @@ import org.jsoup.select.Elements;
 
 import rfx.server.common.ContentTypePool;
 import rfx.server.common.StringUtil;
+import rfx.server.common.configs.ServerConfigs;
+import rfx.server.lambda.FunctionPipeline;
+import rfx.server.lambda.FunctionsChannelHandler;
+import rfx.server.lambda.SimpleHttpResponse;
 import rfx.server.lambda.functions.Decorator;
 import rfx.server.lambda.functions.Filter;
 import rfx.server.lambda.functions.Processor;
@@ -29,13 +33,10 @@ import de.l3s.boilerpipe.sax.HTMLDocument;
 import de.l3s.boilerpipe.sax.HTMLFetcher;
 import de.l3s.boilerpipe.sax.HTMLHighlighter;
 
+public class ArticleCrawlerServer {
+	
+	final static Map<String, Processor> mapper = new HashMap<String, Processor>();
 
-public class LambdaHttpServer {
-	
-	static String ip = "127.0.0.1";
-	static int port = 8080;
-	final static Map<String, Processor> mapper = new HashMap<String, Processor>(10);
-	
 	static final String getHtmlArticle(URL url) throws Exception{				
 		BoilerpipeExtractor extractor = CommonExtractors.ARTICLE_EXTRACTOR;
 		HTMLHighlighter hh = HTMLHighlighter.newExtractingInstance(true, true);
@@ -120,12 +121,14 @@ public class LambdaHttpServer {
 		return new CrawledArticle(title, extractedHtml, keywords);
 	}
 	
-		
+
+	
 	public static void main(String[] args) throws Exception {
-		if(args.length >= 2){
-			ip = args[0];
-			port = StringUtil.safeParseInt(args[1]);
+		String configPath = null;
+		if(args.length >= 1){
+			configPath = args[0];			
 		}
+		ServerConfigs serverConfigs = configPath == null ? ServerConfigs.getInstance() : ServerConfigs.getInstance(configPath); 
 		
 		//the function pipeline for this server
 		FunctionPipeline pipe = new FunctionPipeline();
@@ -142,6 +145,7 @@ public class LambdaHttpServer {
 		};
 		mapper.put("/hello", helloFunction);
 		
+	
 		Processor crawlingFunction = req -> {			
 			try {										
 				URL url = new URL(req.getParameters().get("url").get(0));		
@@ -226,6 +230,7 @@ public class LambdaHttpServer {
 		pipe.apply(filterAccessAdmin).apply(mainFunction).apply(formatingResult);
 		pipe.apply(mainFunction);
 		
-		NettyServerUtil.newHttpServerBootstrap(ip, port, new FunctionsChannelHandler(pipe) );
+		NettyServerUtil.newHttpServerBootstrap(serverConfigs.getHost(), serverConfigs.getHttpPort(), new FunctionsChannelHandler(pipe) );
 	}
+	
 }
