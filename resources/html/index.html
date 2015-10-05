@@ -4,10 +4,9 @@
 
 <meta charset="utf-8" />
 
-<title>Demo Chat</title>
+<title>Reactive Spark SQL Query Demo</title>
 
-<link href="https://monitor.adsplay.net/css/bootstrap.min.css"
-	rel="stylesheet">
+<link href="https://monitor.adsplay.net/css/bootstrap.min.css">
 
 <style>
 body {
@@ -34,6 +33,11 @@ body {
 .send-msg {
 	color: #888
 }
+
+.result {
+	font-weight: bold;
+	color: blue;
+}
 </style>
 
 
@@ -41,61 +45,11 @@ body {
 <script src="https://monitor.adsplay.net/js/moment.min.js"></script>
 <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 
-<script>
-	var userName = 'user' + Math.floor((Math.random() * 1000) + 1);
-
-	var socket = io.connect('http://localhost:9092');
-
-	socket.on('connect',
-					function() {
-						output('<span class="connect-msg">Client has connected to the server!</span>');
-					});
-
-	socket.on('chatevent', function(data) {
-		output('<span class="username-msg">' + data.userName + ':</span> '
-				+ data.message);
-	});
-
-	socket.on('disconnect',
-					function() {
-						output('<span class="disconnect-msg">The client has disconnected!</span>');
-					});
-
-	function sendDisconnect() {
-		socket.disconnect();
-	}
-
-	function sendMessage() {
-		var message = $('#msg').val();
-		$('#msg').val('');
-
-		// don't forget to define type field '@class' 
-		// it should equals to class name which used 
-		// to deserialize object on server side
-		// via ...addJsonObjectListener() method
-		//
-		// TIP: you can customize type name field
-		// via Configuration.jsonTypeFieldName property
-
-		var jsonObject = {
-			userName : userName,
-			message : message
-		};
-		socket.emit('chatevent', jsonObject);
-	}
-
-	function output(message) {
-		var currentTime = "<span class='time'>"
-				+ moment().format('HH:mm:ss.SSS') + "</span>";
-		var element = $("<div>" + currentTime + " " + message + "</div>");
-		$('#console').prepend(element);
-	}
-</script>
 </head>
 
 <body>
 
-	<h1>Netty-socketio Demo Chat</h1>
+	<h1>Reactive Spark SQL Query Demo</h1>
 
 	<br />
 
@@ -103,10 +57,52 @@ body {
 
 	<form class="well form-inline" onsubmit="return false;">
 		<input id="msg" class="input-xlarge" type="text"
-			placeholder="Type something..." />
+			placeholder="Type a SQL query here..." />
 		<button type="button" onClick="sendMessage()" class="btn">Send</button>
 		<button type="button" onClick="sendDisconnect()" class="btn">Disconnect</button>
 	</form>
+
+<script>
+	var senderId = 'sender:' + Math.floor((Math.random() * 10000) + 1);
+
+	var socket = io.connect('http://localhost:9092');
+
+	socket.on('connect',function() {output('<span class="connect-msg">Client has connected to the server!</span>');	});
+
+	socket.on('queryResult',function(data) {		
+		var rs = JSON.parse(data.jsonData);
+		console.log(rs);
+		output('<span class="result">' + rs.ok + '</span> '); 
+	});
+
+	socket.on('disconnect', function() { output('<span class="disconnect-msg">The client has disconnected!</span>'); });
+
+	function sendDisconnect() {
+		socket.disconnect();
+	}
+
+	function sendMessage() {
+		var queryStr = $('#msg').val();
+		$('#msg').val('');
+		
+		var q = { senderId : senderId, query : queryStr };		
+		socket.emit('queryEvent', q);
+		
+		output('<span class="username-msg">' + q.senderId + ':</span> '+ q.query); 
+	}
+
+	function output(message) {
+		var currentTime = "<span class='time'>"	+ moment().format('HH:mm:ss.SSS') + "</span>";
+		var element = $("<div>" + currentTime + " " + message + "</div>");
+		$('#console').append(element);
+	}
+	
+	$("#msg").keyup(function(event){
+	    if(event.keyCode == 13){
+	    	sendMessage();
+	    }
+	});
+</script>
 
 </body>
 
