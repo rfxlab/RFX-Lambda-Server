@@ -4,9 +4,19 @@
 
 <meta charset="utf-8" />
 
-<title>Reactive Spark SQL Query Demo</title>
+<title>the #‎IRIS‬ - Intelligent Fast Data Query System (Apache Spark and RFX-IRIS)</title>
 
-<link href="https://monitor.adsplay.net/css/bootstrap.min.css">
+	<meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
+  	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  
+  	<script src="http://chat.socket.io/socket.io/socket.io.js"></script>
+	<script src="https://monitor.adsplay.net/js/moment.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.3/handlebars.min.js"></script>
+	<script src="http://nvd3.org/assets/lib/d3.v3.js"></script>
+	<script src="http://nvd3.org/assets/js/nv.d3.js"></script>
 
 <style>
 body {
@@ -14,7 +24,7 @@ body {
 }
 
 #console {
-	height: 400px;
+	height: 650px;
 	overflow: auto;
 }
 
@@ -41,26 +51,51 @@ body {
 </style>
 
 
-<script src="http://chat.socket.io/socket.io/socket.io.js"></script>
-<script src="https://monitor.adsplay.net/js/moment.min.js"></script>
-<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-
 </head>
 
 <body>
-
-	<h1>Reactive Spark SQL Query Demo</h1>
-
+	<h1>‪the #‎IRIS‬ - Intelligent Fast Data Query System (Apache Spark and RFX-IRIS)</h1>
 	<br />
-
 	<div id="console" class="well"></div>
 
-	<form class="well form-inline" onsubmit="return false;">
-		<input id="msg" class="input-xlarge" type="text"
-			placeholder="Type a SQL query here..." />
+	<form class="well form-inline" onsubmit="return false;">		
+		<textarea id="msg" rows="4" cols="80" style="width: 60%; height: 90px" placeholder="Type a query here..." ></textarea>
+		<br>
 		<button type="button" onClick="sendMessage()" class="btn">Send</button>
 		<button type="button" onClick="sendDisconnect()" class="btn">Disconnect</button>
 	</form>
+
+<script id="tpl-report-adsplay" type="text/x-handlebars-template">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Impressions</th>
+        <th>Clicks</th>
+		<th>Trueviews</th>
+      </tr>
+    </thead>
+    <tbody>
+
+	{{#each reportAdsData}}
+	 	<tr>
+			<td>{{date}}</td>
+        	<td>{{impression}}</td>
+        	<td>{{click}}</td>
+        	<td>{{trueview}}</td>
+      	</tr>
+	{{/each}}
+      
+    </tbody>
+  </table>
+</script>
+
+<script id="tpl-report-devices" type="text/x-handlebars-template">
+	<div id='chart' class='span4'>
+  		Devices
+  		<svg style='height:300px;width:320px'> </svg>
+	</div>
+</script>
 
 <script>
 	var senderId = 'sender:' + Math.floor((Math.random() * 10000) + 1);
@@ -72,7 +107,45 @@ body {
 	socket.on('queryResult',function(data) {		
 		var rs = JSON.parse(data.jsonData);
 		console.log(rs);
-		output('<span class="result">' + rs.ok + '</span> '); 
+		if(rs.nhacso){
+			output('<div class="result">' + rs.nhacso + '</div> ');
+		}
+		else if(rs.reportAdsData) {
+			var source   = $("#tpl-report-adsplay").html();
+			var template = Handlebars.compile(source);			
+			var html    = template(rs);
+			output('<div class="result">' + html + '</div> ');
+		}
+		else if(rs.reportDeviceData) {
+			var source   = $("#tpl-report-devices").html();
+			var template = Handlebars.compile(source);			
+			var html    = template({});
+			output('<div class="result">' + html + '</div> ');
+			
+			//Donut chart example
+			nv.addGraph(function() {
+			  var chart = nv.models.pieChart()
+			      .x(function(d) { return d.label })
+			      .y(function(d) { return d.value })
+			      .showLabels(true)     //Display pie labels
+			      .labelThreshold(.05)  //Configure the minimum slice size for labels to show up
+			      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
+			      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
+			      .donutRatio(0.2)     //Configure how big you want the donut hole size to be.
+			      ;
+
+			    d3.select("#chart svg")
+			        .datum(rs.reportDeviceData)
+			        .transition().duration(350)
+			        .call(chart);
+
+			  return chart;
+			});
+		}
+		else if(rs.msg)  {
+			output('<div class="result">' + rs.msg + '</div> ');	
+		}
+		 
 	});
 
 	socket.on('disconnect', function() { output('<span class="disconnect-msg">The client has disconnected!</span>'); });
