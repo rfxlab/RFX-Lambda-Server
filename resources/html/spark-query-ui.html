@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8" />
+
+<title>the #‎IRIS‬ - Intelligent Fast Data Query System (Apache Spark and RFX-IRIS)</title>
+
+	<meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
+  	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  
+  	<script src="http://chat.socket.io/socket.io/socket.io.js"></script>
+	<script src="https://monitor.adsplay.net/js/moment.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.3/handlebars.min.js"></script>
+	<script src="http://nvd3.org/assets/lib/d3.v3.js"></script>
+	<script src="http://nvd3.org/assets/js/nv.d3.js"></script>
+
+<style>
+body {
+	padding: 20px;
+}
+
+#console {
+	height: 650px;
+	overflow: auto;
+}
+
+.username-msg {
+	color: orange;
+}
+
+.connect-msg {
+	color: green;
+}
+
+.disconnect-msg {
+	color: red;
+}
+
+.send-msg {
+	color: #888
+}
+
+.result {
+	font-weight: bold;
+	color: blue;
+}
+</style>
+
+
+</head>
+
+<body>
+	<h1>‪Fast Data Query System (Apache Spark SQL)</h1>
+	<br />
+	<div id="console" class="well"></div>
+
+	<form class="well form-inline" onsubmit="return false;">		
+		<textarea id="msg" rows="4" cols="80" style="width: 60%; height: 90px" placeholder="Type a query here..." ></textarea>
+		<br>
+		<button type="button" onClick="sendMessage()" class="btn">Send</button>
+		<button type="button" onClick="sendDisconnect()" class="btn">Disconnect</button>
+	</form>
+
+<script id="tpl-report-devices" type="text/x-handlebars-template">
+	<div id='chart' class='span4'>
+  		Devices
+  		<svg style='height:300px;width:320px'> </svg>
+	</div>
+</script>
+
+<script>
+	var senderId = 'sender:' + Math.floor((Math.random() * 10000) + 1);
+
+	var socket = io.connect('http://localhost:9092');
+
+	socket.on('connect',function() {output('<span class="connect-msg">Client has connected to the server!</span>');	});
+
+	socket.on('queryResult',function(data) {		
+		var rs = JSON.parse(data.jsonData);
+		console.log(rs);
+
+		if(rs.reportDeviceData) {
+			var source   = $("#tpl-report-devices").html();
+			var template = Handlebars.compile(source);			
+			var html    = template({});
+			output('<div class="result">' + html + '</div> ');
+			
+			//Donut chart example
+			nv.addGraph(function() {
+			  var chart = nv.models.pieChart()
+			      .x(function(d) { return d.label })
+			      .y(function(d) { return d.value })
+			      .showLabels(true)     //Display pie labels
+			      .labelThreshold(.05)  //Configure the minimum slice size for labels to show up
+			      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
+			      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
+			      .donutRatio(0.2)     //Configure how big you want the donut hole size to be.
+			      ;
+
+			    d3.select("#chart svg")
+			        .datum(rs.reportDeviceData)
+			        .transition().duration(350)
+			        .call(chart);
+
+			  return chart;
+			});
+		}
+		else if(rs.msg)  {
+			output('<div class="result">' + rs.msg + '</div> ');	
+		}
+		 
+	});
+
+	socket.on('disconnect', function() { output('<span class="disconnect-msg">The client has disconnected!</span>'); });
+
+	function sendDisconnect() {
+		socket.disconnect();
+	}
+
+	function sendMessage() {
+		var queryStr = $('#msg').val();
+		$('#msg').val('');
+		
+		var q = { senderId : senderId, query : queryStr };		
+		socket.emit('queryEvent', q);
+		
+		output('<span class="username-msg">' + q.senderId + ':</span> '+ q.query); 
+	}
+
+	function output(message) {
+		var currentTime = "<span class='time'>"	+ moment().format('HH:mm:ss.SSS') + "</span>";
+		var element = $("<div>" + currentTime + " " + message + "</div>");
+		$('#console').append(element);
+	}
+	
+	$("#msg").keyup(function(event){
+	    if(event.keyCode == 13){
+	    	sendMessage();
+	    }
+	});
+</script>
+
+</body>
+
+</html>
