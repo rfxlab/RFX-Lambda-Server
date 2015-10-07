@@ -24,7 +24,7 @@ body {
 }
 
 #console {
-	height: 650px;
+	height: 400px;
 	overflow: auto;
 }
 
@@ -59,7 +59,9 @@ body {
 	<div id="console" class="well"></div>
 
 	<form class="well form-inline" onsubmit="return false;">		
-		<textarea id="msg" rows="4" cols="80" style="width: 60%; height: 90px" placeholder="Type a query here..." ></textarea>
+		<textarea id="msg" rows="4" cols="80" style="width: 60%; height: 90px" placeholder="Type a query here..." >
+		from "2015-08-31-08" to "2015-08-31-10" apply "SELECT url, count(url) As UrlCount FROM LogData GROUP BY url ORDER BY UrlCount DESC"
+		</textarea>
 		<br>
 		<button type="button" onClick="sendMessage()" class="btn">Send</button>
 		<button type="button" onClick="sendDisconnect()" class="btn">Disconnect</button>
@@ -82,7 +84,10 @@ body {
 	socket.on('queryResult',function(data) {		
 		var rs = JSON.parse(data.jsonData);
 		console.log(rs);
+		var json = JSON.stringify(rs, null, 4);
+		output('<div class="result">' + json + '</div> ');
 
+		
 		if(rs.reportDeviceData) {
 			var source   = $("#tpl-report-devices").html();
 			var template = Handlebars.compile(source);			
@@ -100,19 +105,14 @@ body {
 			      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
 			      .donutRatio(0.2)     //Configure how big you want the donut hole size to be.
 			      ;
-
 			    d3.select("#chart svg")
 			        .datum(rs.reportDeviceData)
 			        .transition().duration(350)
 			        .call(chart);
-
 			  return chart;
 			});
 		}
-		else if(rs.msg)  {
-			output('<div class="result">' + rs.msg + '</div> ');	
-		}
-		 
+		
 	});
 
 	socket.on('disconnect', function() { output('<span class="disconnect-msg">The client has disconnected!</span>'); });

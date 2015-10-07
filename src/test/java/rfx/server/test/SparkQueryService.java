@@ -1,12 +1,12 @@
 package rfx.server.test;
 
-import com.corundumstudio.socketio.AckRequest;
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.SocketIOServer;
-import com.corundumstudio.socketio.listener.DataListener;
-import com.google.gson.Gson;
+import java.io.File;
+import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.commons.io.FileUtils;
+
 import redis.clients.jedis.JedisPubSub;
 import rfx.server.common.ContentTypePool;
 import rfx.server.common.configs.ServerConfigs;
@@ -16,9 +16,10 @@ import rfx.server.lambda.SimpleHttpResponse;
 import rfx.server.lambda.functions.Processor;
 import rfx.server.netty.NettyServerUtil;
 
-import java.io.File;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.SocketIOServer;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class SparkQueryService {
 
@@ -43,8 +44,12 @@ public class SparkQueryService {
                     switch (channel) {
                         case "sql-result":
                             System.out.println("sql-result: " + message);
-                            Map map = new Gson().fromJson(message, Map.class);
-                            server.getClient(new Query("", "").getUuid()).sendEvent("queryResult", new Result(map.get("senderId").toString(), map.get("jsonData").toString()));
+                            
+                            //Type type = new TypeToken<Map<String, String>>(){}.getType();
+                            Result rs = new Gson().fromJson(message, Result.class);
+                            
+                            //Result rs = new Result(map.get("senderId").toString(), map.get("jsonData").toString());
+                            server.getClient(rs.getUuid()).sendEvent("queryResult", rs);
                             break;
                     }
                 }
