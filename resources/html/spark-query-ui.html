@@ -60,23 +60,15 @@ body {
 
 	<form class="well form-inline" onsubmit="return false;">		
 		<textarea id="msg" rows="4" cols="80" style="width: 60%; height: 90px" placeholder="Type a query here..." >
-		from "2015-08-31-08" to "2015-08-31-10" apply "SELECT url, count(url) As UrlCount FROM LogData GROUP BY url ORDER BY UrlCount DESC"
+		SELECT deviceName label, COUNT(*) value FROM LogData GROUP BY deviceName LIMIT 10
 		</textarea>
 		<br>
 		<button type="button" onClick="sendMessage()" class="btn">Send</button>
 		<button type="button" onClick="sendDisconnect()" class="btn">Disconnect</button>
 	</form>
 
-<script id="tpl-report-devices" type="text/x-handlebars-template">
-	<div id='chart' class='span4'>
-  		Devices
-  		<svg style='height:300px;width:320px'> </svg>
-	</div>
-</script>
-
 <script>
 	var senderId = 'sender:' + Math.floor((Math.random() * 10000) + 1);
-
 	var socket = io.connect('http://localhost:9092');
 
 	socket.on('connect',function() {output('<span class="connect-msg">Client has connected to the server!</span>');	});
@@ -87,32 +79,6 @@ body {
 		var json = JSON.stringify(rs, null, 4);
 		output('<div class="result">' + json + '</div> ');
 
-		
-		if(rs.reportDeviceData) {
-			var source   = $("#tpl-report-devices").html();
-			var template = Handlebars.compile(source);			
-			var html    = template({});
-			output('<div class="result">' + html + '</div> ');
-			
-			//Donut chart example
-			nv.addGraph(function() {
-			  var chart = nv.models.pieChart()
-			      .x(function(d) { return d.label })
-			      .y(function(d) { return d.value })
-			      .showLabels(true)     //Display pie labels
-			      .labelThreshold(.05)  //Configure the minimum slice size for labels to show up
-			      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
-			      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
-			      .donutRatio(0.2)     //Configure how big you want the donut hole size to be.
-			      ;
-			    d3.select("#chart svg")
-			        .datum(rs.reportDeviceData)
-			        .transition().duration(350)
-			        .call(chart);
-			  return chart;
-			});
-		}
-		
 	});
 
 	socket.on('disconnect', function() { output('<span class="disconnect-msg">The client has disconnected!</span>'); });
@@ -125,7 +91,7 @@ body {
 		var queryStr = $('#msg').val();
 		$('#msg').val('');
 		
-		var q = { senderId : senderId, query : queryStr };		
+		var q = { senderId : senderId, query : queryStr };
 		socket.emit('queryEvent', q);
 		
 		output('<span class="username-msg">' + q.senderId + ':</span> '+ q.query); 

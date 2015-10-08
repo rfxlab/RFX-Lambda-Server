@@ -47,7 +47,10 @@ public class SparkQueryService {
                             
                             //Type type = new TypeToken<Map<String, String>>(){}.getType();
                             Result rs = new Gson().fromJson(message, Result.class);
-                            
+                            System.out.println(rs.getReceiverId());
+                            System.out.println(rs.getUuid());
+                            System.out.println(rs.getJsonData());
+
                             //Result rs = new Result(map.get("senderId").toString(), map.get("jsonData").toString());
                             server.getClient(rs.getUuid()).sendEvent("queryResult", rs);
                             break;
