@@ -60,7 +60,12 @@ body {
 
 	<form class="well form-inline" onsubmit="return false;">		
 		<textarea id="msg" rows="4" cols="80" style="width: 60%; height: 90px" placeholder="Type a query here..." >
-		SELECT deviceName label, COUNT(*) value FROM LogData GROUP BY deviceName LIMIT 10
+		{
+	from: "2015-10-01-00",
+	to: "2015-10-12-13",
+	logType: "playview-nhacso",
+	query: "SELECT url, count(url) UrlCount FROM NhacsoLog GROUP BY url ORDER BY UrlCount DESC LIMIT 20"
+}
 		</textarea>
 		<br>
 		<button type="button" onClick="sendMessage()" class="btn">Send</button>
