@@ -22,7 +22,7 @@ public class ArticleParser {
 
 
 	public static void main(String[] args) throws Exception {
-		URL url = new URL("http://kenh14.vn/star/luong-the-thanh-va-thuy-diem-hanh-phuc-trong-ngay-le-dinh-hon-20151002095744918.chn");	
+		URL url = new URL("http://news.zing.vn/Neu-Cong-Vinh-tinh-tao-hon-DTVN-da-khong-hoa-post588102.html");	
 		String bodyXpath = "div.content";
 		String keywordsXpath = "ul.tag-list > li";
 		
@@ -66,5 +66,6 @@ public class ArticleParser {
 			}
 		} 
 		System.out.println("keywords: " +keywords);
+		System.out.println("extractedHtml: " +extractedHtml);
 	}
 }

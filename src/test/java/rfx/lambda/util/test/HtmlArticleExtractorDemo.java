@@ -10,7 +10,7 @@ import de.l3s.boilerpipe.sax.HTMLHighlighter;
 public class HtmlArticleExtractorDemo {
 	public static void main(String[] args) throws Exception {
 		URL url = new URL(
-				"http://news.zing.vn/MU-thang-nguoc-Wolfsburg-21-nho-cong-cua-Mata-post585388.html");
+				"http://news.zing.vn/5-sao-nam-trieu-view-dang-nguong-mo-cua-Vpop-post587069.html");
 		final BoilerpipeExtractor extractor = CommonExtractors.ARTICLE_EXTRACTOR;
 
 		final boolean includeImages = true;
