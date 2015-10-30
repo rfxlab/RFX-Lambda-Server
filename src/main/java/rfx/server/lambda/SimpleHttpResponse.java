@@ -1,21 +1,23 @@
 package rfx.server.lambda;
 
+import com.google.gson.Gson;
+
 import rfx.server.common.ContentTypePool;
+import rfx.server.common.StringPool;
 
 public class SimpleHttpResponse {
 	protected int status = 200;
 	protected String contentType = ContentTypePool.TEXT_UTF8;
-	protected String head;
-	protected String body;
+	protected String data;
 	protected long time;
 	
 	public SimpleHttpResponse() {
-		// TODO Auto-generated constructor stub
+		data = StringPool.BLANK;
 	}
 
 	public SimpleHttpResponse(String data) {
 		super();
-		this.body = data;
+		this.data = data;
 	}
 	
 	public int getStatus() {
@@ -34,22 +36,6 @@ public class SimpleHttpResponse {
 		this.contentType = contentType;
 	}
 
-	public String getHead() {
-		return head;
-	}
-
-	public void setHead(String head) {
-		this.head = head;
-	}
-
-	public String getBody() {
-		return body;
-	}
-
-	public void setBody(String data) {
-		this.body = data;
-	}
-
 	public long getTime() {
 		return time;
 	}
@@ -58,10 +44,24 @@ public class SimpleHttpResponse {
 		this.time = time;
 	}
 	
+	public void setData(String data) {
+		this.data = data;
+	}
+	
+	public String getData() {
+		if(data == null){
+			data = StringPool.BLANK;
+		}
+		return data;
+	}
+	
+	public String toJson() {		
+		return new Gson().toJson(this);
+	}
+	
 	@Override
 	public String toString() {		
-		//return new Gson().toJson(this);
-		return body;
+		return getData();
 	}
 
 }

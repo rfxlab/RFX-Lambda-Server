@@ -6,30 +6,30 @@ import java.util.function.Function;
 
 import rfx.server.lambda.functions.Decorator;
 import rfx.server.lambda.functions.Filter;
-import rfx.server.lambda.functions.FinalProcessor;
 
 public class FunctionPipeline {
 	
+	protected List<Function<SimpleHttpRequest, SimpleHttpResponse>> processorFunctions = new ArrayList<>();	
+	protected List<Filter> filterFunctions = new ArrayList<>();
+	protected List<Decorator> decoratorFunctions = new ArrayList<>();
 	
-	List<Filter> filterFunctions = new ArrayList<>();
 	public FunctionPipeline apply(Filter f){
 		filterFunctions.add(f);
 		return this;
-	}
+	}	
 	
-	List<Function<SimpleHttpRequest, SimpleHttpResponse>> processorFunctions = new ArrayList<>();
 	public FunctionPipeline apply(Function<SimpleHttpRequest , SimpleHttpResponse> f){
 		processorFunctions.add(f);
 		return this;
 	}
 	
-	List<Decorator> decoratorFunctions = new ArrayList<>();
+	
 	public FunctionPipeline apply(Decorator f){
 		decoratorFunctions.add(f);
 		return this;
 	}
 	
-	SimpleHttpResponse apply(SimpleHttpRequest req){
+	protected SimpleHttpResponse apply(SimpleHttpRequest req){
 		SimpleHttpResponse resp = null;
 		int s = 0; 
 		
@@ -72,55 +72,7 @@ public class FunctionPipeline {
 			if(s == 0){
 				break;
 			}			
-		}
-		
+		}		
 		return resp;
-	}
-	
-
-
-	public static void main(String[] args) throws Exception {
-
-		FunctionPipeline processor = new FunctionPipeline();
-
-//		SimpleHttpRequest httpRequest = new SimpleHttpRequest();
-//		httpRequest.setUri("/get/123");
-//
-//		SimpleHttpResponse resp1 = processor.process(httpRequest);
-//		System.out.println(resp1.getData());
-		//System.out.println(resp.getTime());
-		
-		Filter filterAccessAdmin = req -> {
-			req.setNotAuthorized(req.getUri().contains("admin"));
-			return req;			
-		};		
-		FinalProcessor logic123Function = req -> {
-			if(req.getUri().contains("123")){
-				return new SimpleHttpResponse("123 data");
-			}
-			return new SimpleHttpResponse();
-		};
-		Decorator formatingResult = resp -> {
-			resp.setBody("(" + resp.getBody() + ")");
-			return resp;
-		};
-				
-		processor.apply(filterAccessAdmin).apply(logic123Function).apply(formatingResult);		
-		System.out.println(processor.apply(new SimpleHttpRequest("admin/edit/123")));
-		System.out.println(processor.apply(new SimpleHttpRequest("user/edit/123")));
-		System.out.println(processor.apply(new SimpleHttpRequest("user/edit/456")));
-				
-		
-		FinalProcessor logic456Function = req -> {
-			if(req.getUri().contains("456")){
-				return new SimpleHttpResponse("456 data");
-			}
-			return null;
-		};
-		processor.apply(logic456Function);
-		
-		System.out.println(processor.apply(new SimpleHttpRequest("user/edit/456")));
-		
-		
 	}
 }
