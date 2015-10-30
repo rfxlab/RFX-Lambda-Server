@@ -19,7 +19,7 @@ import scala.collection.mutable.StringBuilder;
 public class SimpleServer {
 	
 	static String htmlHead = "<HTML><HEAD><title>SimpleServer</title><meta http-equiv=\"Content-Type\" content=\"text-html; charset=utf-8\" /></HEAD>";
-	
+		
 	public static void main(String[] args) {
 		String configPath = null;
 		if (args.length >= 1) {
@@ -27,13 +27,12 @@ public class SimpleServer {
 		}
 		LambdaHttpServer server = new LambdaHttpServer(configPath);
 		final Map<String, Processor> mapper = new HashMap<String, Processor>();
-
+		
 		// filtering not authorized request
 		Filter filterAccessAdmin = (SimpleHttpRequest req) -> {
 			req.setNotAuthorized(req.getUri().contains("admin"));
 			return req;
 		};
-
 		
 		mapper.put("/hello", (SimpleHttpRequest req)  -> {
 			SimpleHttpResponse resp = new SimpleHttpResponse("Hello world !");
