@@ -1,8 +1,10 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'maven'
 
 sourceCompatibility = 1.8
-version = '1.0'
+group 'rfx'
+version = '0.1'
 
 repositories {
     mavenCentral()
@@ -15,8 +17,7 @@ repositories {
 dependencies {
     compile(
             // common
-            'io.netty:netty-all:4.0.32.Final'
-                        
+            'io.netty:netty-all:4.0.32.Final'                        
             , 'com.typesafe.akka:akka-actor_2.11:2.4.0'
             , 'com.google.code.gson:gson:2.4'
             , 'log4j:log4j:1.2.17'          
@@ -27,27 +28,11 @@ dependencies {
             , 'org.apache.httpcomponents:httpclient:4.5'
             , 'org.yaml:snakeyaml:1.14'
             , 'com.google.guava:guava:18.0'
-            
-            // Real-time web
             , 'com.corundumstudio.socketio:netty-socketio:1.7.7'            
-          
-          	// deps of Boilerpipe Text Extraction library
-          	, 'net.htmlparser.jericho:jericho-html:3.3'
-          	, 'xerces:xercesImpl:2.11.0'          	
-          	, 'net.sourceforge.nekohtml:nekohtml:1.9.22'      
-          	
-          	//HTML parser
-          	, 'org.jsoup:jsoup:1.8.3'          	   	
-          	
-          	// built Boilerpipe lib from Ant Build
-			, fileTree(dir: 'lib', include: '**/*.jar')    
-			
-			//Social Media Utils
-			,'org.twitter4j:twitter4j-core:4.0.4'			
+          		
     )
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
-
 
 
 def getClasspathStringJars() {
@@ -60,13 +45,13 @@ def getClasspathStringJars() {
 }
 
 // copy libs
-task rfxCopyRuntimeLibs(type: Copy) {  
+task copyRuntimeLibs(type: Copy) {  
   into "build/libs/deps"  
   from configurations.compile  
 }
 
 // copy config
-task rfxCopyConfigs(type: Copy) {  
+task copyConfigs(type: Copy) {  
   into "build/libs/configs"  
   from files('configs')
 }
@@ -75,11 +60,10 @@ task buildMainJar(type: Jar) {
 	dependsOn classes   
     from(sourceSets.main.output) {
         include "**"
-    }
-    version = '1.0'
-    baseName = 'adsplay-server'
+    }    
+    baseName = 'rfx-lambda-http-server'
     manifest {
-   		attributes ('Implementation-Title': 'ArticleParsingApiServer', 
+   		attributes ('Implementation-Title': 'LambdaHttpServer', 
         			'Implementation-Version': version ,
         			'Main-Class': 'rfx.server.lambda.LambdaHttpServer',
         			'Class-Path' : getClasspathStringJars() 

@@ -1,5 +1,7 @@
 package rfx.server.netty;
 
+import java.net.URI;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -16,8 +18,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.ClientCookieEncoder;
-import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpClientCodec;
@@ -32,10 +32,8 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.stream.ChunkedWriteHandler;
-
-import java.net.URI;
 
 public class NettyServerUtil {
 	
@@ -107,7 +105,7 @@ public class NettyServerUtil {
 		final boolean ssl = "https".equalsIgnoreCase(scheme);
 		final SslContext sslCtx;
 		if (ssl) {
-			sslCtx = SslContext.newClientContext(InsecureTrustManagerFactory.INSTANCE);
+			sslCtx = SslContextBuilder.forClient().build();
 		} else {
 			sslCtx = null;
 		}
@@ -125,9 +123,7 @@ public class NettyServerUtil {
 			HttpHeaders headers = request.headers();
 			headers.set(HttpHeaders.Names.HOST, host);
 			headers.set(HttpHeaders.Names.CONNECTION,HttpHeaders.Values.CLOSE);
-			headers.set(HttpHeaders.Names.ACCEPT_ENCODING,HttpHeaders.Values.GZIP);
-			// Set some example cookies.
-			headers.set(HttpHeaders.Names.COOKIE, ClientCookieEncoder.encode(new DefaultCookie("my-cookie", "foo")));
+			headers.set(HttpHeaders.Names.ACCEPT_ENCODING,HttpHeaders.Values.GZIP);			
 			ch.writeAndFlush(request);
 			// Wait for the server to close the connection.
 			ch.closeFuture().sync();

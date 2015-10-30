@@ -40,8 +40,6 @@ public class ServerConfigs {
 		this.host = host;
 	}
 	
-
-	
 	public int getHttpPort() {
 		return httpPort;
 	}
