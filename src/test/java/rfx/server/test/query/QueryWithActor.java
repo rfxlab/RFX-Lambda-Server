@@ -139,11 +139,11 @@ public class QueryWithActor {
 				String income = toks[14].trim();
 				String occupation = toks[6].trim();				
 				Person person = new Person(id, education, occupation, income.equals("<=50K"));
+				System.out.println("--> person " + person.toString());
 				person.setRawData(row);
 				
 				ActorRef actorRef = system.actorOf(Props.create(PersonActor.class,person));
-				dataActors.put(id, actorRef);
-				//personMap.put(id, person);
+				dataActors.put(id, actorRef);				
 			} else {
 				System.out.println(" bad data row "+row);
 			}
@@ -152,7 +152,7 @@ public class QueryWithActor {
 		return dataActors;
 	}
 	
-	static void printResults(Query<?> query, QueryResult queryResult){
+	static void printResults(String queryMsg, QueryResult queryResult){
 		AtomicInteger count = new AtomicInteger(0);
 		int totalPersons = idCount.get();
 		queryResult.getReducedResults().forEach((String edu, List<Object> groupedPersons)->{
@@ -170,10 +170,30 @@ public class QueryWithActor {
 		percent = Math.round(percent * 100.0) / 100.0;
 		
 		System.out.println("data path: " + SAMPLE_DATA_PATH);
-		System.out.println(query.getDescription());
+		System.out.println(queryMsg);
 		System.out.println("Total persons in result = " + totalResult + ", takes " + percent +"% in total");
 		System.out.println("Total persons = " + totalPersons);	
 	}		
+	
+	static void printResults2(String queryMsg, QueryResult queryResult){
+		AtomicInteger count = new AtomicInteger(0);
+		int totalPersons = idCount.get();
+		queryResult.getReducedResults().forEach((String edu, List<Object> groupedPersons)->{
+			if(groupedPersons != null){
+				for (Object object : groupedPersons) {
+					System.out.println(object);
+				}
+			}
+		});		
+		int totalResult = count.get();
+		double percent = (double)( totalResult * 100) / totalPersons;
+		percent = Math.round(percent * 100.0) / 100.0;
+		
+		System.out.println("data path: " + SAMPLE_DATA_PATH);
+		System.out.println(queryMsg);
+		System.out.println("Total persons in result = " + totalResult + ", takes " + percent +"% in total");
+		System.out.println("Total persons = " + totalPersons);	
+	}
 		
 	static class PredicateIncomeLargerThan50k implements PredicateFactory {
 		private static final long serialVersionUID = -7011351296196435505L;
@@ -187,9 +207,27 @@ public class QueryWithActor {
 		}
 	}
 	
+	static class FilterPersonByEducation implements PredicateFactory {
+		
+		private static final long serialVersionUID = -8483485369218873451L;
+		String edu;
+		
+		public FilterPersonByEducation(String edu) {
+			this.edu = edu;
+		}
+		
+		public Predicate<Person> build(){
+			return new Predicate<Person>() {			
+				@Override
+				public boolean test(Person person) {				
+					return person.getEducation().equals(edu);
+				}
+			};
+		}
+	}
+	
 	static class FunctionGroupByEducation implements FunctionFactory {
 		private static final long serialVersionUID = -872087603235171330L;
-
 		@Override
 		public Function<ActorData, String> build() {
 			return new Function<ActorData, String>() {				
@@ -202,29 +240,45 @@ public class QueryWithActor {
 			};
 		}		
 	}
-
-	public static void main(String[] args) {
-		ActorSystem actorSystem = ActorSystem.create("MySystem");
+	
+	static class FunctionGroupByPersonId implements FunctionFactory {
+		private static final long serialVersionUID = -872087603235171330L;
+		@Override
+		public Function<ActorData, String> build() {
+			return new Function<ActorData, String>() {				
+				@Override
+				public String apply(ActorData actorData) {
+					Person person = (Person)actorData;
+					String groupKey = person.getId()+"";
+					return groupKey;
+				}
+			};
+		}		
+	}
+	
+	static ActorSystem actorSystem = ActorSystem.create("MySystem");
+	static Map<Integer,ActorRef> loadDataActors(){		
 		Map<Integer,ActorRef> dataActors = null;
 		try {
 			dataActors = buildDataActorsFromRawData(actorSystem);
 			Thread.sleep(2000);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}		
+		}
+		return dataActors;
+	}
+
+	public static void main(String[] args) {
+		
 		Stopwatch stopwatch = Stopwatch.createStarted();
 		//-------------------------------------------------------//
 	
-		FunctionGroupByEducation functionFactory = new FunctionGroupByEducation();
-		PredicateIncomeLargerThan50k predicateFactory = new PredicateIncomeLargerThan50k();		
-		
 		Class<? extends Functor> functorClass = FunctorGroupResultByKey.class;		
-		QueryResult queryResult = new QueryResult(functionFactory);
-		int queryActorPoolSize = 500;
-		QueryContext queryContext = new QueryContext(actorSystem, queryResult, dataActors, functorClass, queryActorPoolSize );
+		QueryResult queryResult = new QueryResult(new FunctionGroupByPersonId());		
+		QueryContext queryContext = new QueryContext(actorSystem, queryResult, loadDataActors(), functorClass, 1000 );
 		
-		String des2 = "--- Counting and grouping by [Education], where income >50K and Never-married ---";
-		Query<Person> query = new Query<Person>(queryContext, des2, predicateFactory);		
+		String des = "--- Finding person, where education is Masters ---";
+		Query<Person> query = new Query<Person>(des, queryContext, new FilterPersonByEducation("Masters"));		
 		query.execute();
 		
 		System.out.println("getQueryMessageSize " + queryContext.getQueryMessageSize());
@@ -241,7 +295,7 @@ public class QueryWithActor {
 		stopwatch.stop();
 		long millis = stopwatch.elapsed(TimeUnit.MILLISECONDS)-5;		 
 		
-		printResults(query, queryResult);
+		printResults2(des, queryResult);
 				
 		System.out.println("Query time: " + millis);
 		actorSystem.shutdown();

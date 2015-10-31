@@ -16,10 +16,10 @@ public class Query<T> {
 	QueryContext queryContext;
 	int lastIndexActor;
 	
-	public Query( QueryContext queryContext,String description,PredicateFactory predicateFactory) {
+	public Query(String description, QueryContext queryContext,PredicateFactory predicateFactory) {
 		super();
-		this.queryContext = queryContext;
 		this.description = description;
+		this.queryContext = queryContext;		
 		this.predicateFactory = predicateFactory;
 		this.queryActorPool = createQueryActorPool(queryContext);
 		lastIndexActor = queryContext.getQueryActorPoolSize() - 1;

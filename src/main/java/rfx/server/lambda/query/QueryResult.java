@@ -18,12 +18,12 @@ public class QueryResult {
 
 	public void storeResult(Object data, String groupKey){
 		//refer-link http://stackoverflow.com/questions/20414837/list-in-concurrenthashmap
-		List<Object> groupByEduList = Collections.synchronizedList(new ArrayList<Object>());
-        List<Object> oldGroupByEduList = reducedResults.putIfAbsent(groupKey, groupByEduList);
+		List<Object> groupByList = Collections.synchronizedList(new ArrayList<Object>());
+        List<Object> oldGroupByEduList = reducedResults.putIfAbsent(groupKey, groupByList);
         if (oldGroupByEduList != null) {
-        	groupByEduList = oldGroupByEduList;
+        	groupByList = oldGroupByEduList;
         }
-        groupByEduList.add(data);
+        groupByList.add(data);
 	}
 	
 	public Map<String, List<Object>> getReducedResults() {

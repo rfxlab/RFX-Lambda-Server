@@ -12,6 +12,9 @@ import java.util.stream.Stream;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.actor.UntypedActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 import rfx.server.lambda.query.ActorData;
 import rfx.server.lambda.query.FunctionFactory;
 import rfx.server.lambda.query.Functor;
@@ -36,6 +39,24 @@ public class ActorServer {
 				}
 			};
 		}		
+	}
+	
+	class MyUntypedActor extends UntypedActor {
+		LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+
+		String msg;
+
+		public MyUntypedActor(String msg) {
+			this.msg = msg;
+			System.out.println(msg);
+		}
+
+		public void onReceive(Object message) throws Exception {
+			if (message instanceof String)
+				log.info("Received String message: {}", message);
+			else
+				unhandled(message);
+		}
 	}
 	
 	static int MAX_POOL_SIZE = 1000000;

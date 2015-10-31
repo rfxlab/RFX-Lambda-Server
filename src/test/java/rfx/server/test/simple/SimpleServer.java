@@ -17,9 +17,9 @@ import rfx.server.lambda.functions.Processor;
 import scala.collection.mutable.StringBuilder;
 
 public class SimpleServer {
-	
+
 	static String htmlHead = "<HTML><HEAD><title>SimpleServer</title><meta http-equiv=\"Content-Type\" content=\"text-html; charset=utf-8\" /></HEAD>";
-		
+
 	public static void main(String[] args) {
 		String configPath = null;
 		if (args.length >= 1) {
@@ -27,14 +27,14 @@ public class SimpleServer {
 		}
 		LambdaHttpServer server = new LambdaHttpServer(configPath);
 		final Map<String, Processor> mapper = new HashMap<String, Processor>();
-		
+
 		// filtering not authorized request
 		Filter filterAccessAdmin = (SimpleHttpRequest req) -> {
 			req.setNotAuthorized(req.getUri().contains("admin"));
 			return req;
 		};
-		
-		mapper.put("/hello", (SimpleHttpRequest req)  -> {
+
+		mapper.put("/hello", (SimpleHttpRequest req) -> {
 			SimpleHttpResponse resp = new SimpleHttpResponse("Hello world !");
 			return resp;
 		});
@@ -43,7 +43,7 @@ public class SimpleServer {
 		Processor mainFunction = (SimpleHttpRequest req) -> {
 			String uri = req.getUri();
 			System.out.println("mainFunction: " + uri);
-			
+
 			Processor delegatedF = mapper.get(uri);
 			if (delegatedF != null) {
 				return delegatedF.apply(req);
@@ -80,7 +80,7 @@ public class SimpleServer {
 				};
 				int n = params.get("x").stream().mapToInt(f).reduce(op).getAsInt();
 				s.append("=").append(n);
-				resp.setData(s.toString());				
+				resp.setData(s.toString());
 			}
 			return resp;
 		};
@@ -88,7 +88,7 @@ public class SimpleServer {
 		// the decorator of output
 		Decorator formatingResult = resp -> {
 			System.out.println("formatingResult: " + resp.getData());
-			if ( ! resp.getData().isEmpty() ) {
+			if (!resp.getData().isEmpty()) {
 				resp.setContentType(ContentTypePool.HTML_UTF8);
 				StringBuilder s = new StringBuilder();
 				s.append(htmlHead);
@@ -101,7 +101,7 @@ public class SimpleServer {
 			}
 			return resp;
 		};
-		
+
 		server.apply(filterAccessAdmin).apply(mainFunction).apply(formatingResult).start();
 	}
 }
