@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -70,7 +71,8 @@ public class FunctionsChannelHandler extends SimpleChannelInboundHandler<FullHtt
 		copyHttpBodyData(request, req);
 		
 		SimpleHttpResponse resp =  eventHandler.apply(req);
-		ctx.write( HttpEventHandler.buildHttpResponse(resp.toString(), resp.getStatus(), resp.getContentType()) );
+		HttpResponse fullResp = HttpEventHandler.buildHttpResponse(resp.toString(), resp.getStatus(), resp.getContentType(), resp.getHeaders()); 
+		ctx.write( fullResp );
 		ctx.flush().close();
 		
 	}

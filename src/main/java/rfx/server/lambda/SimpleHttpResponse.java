@@ -1,5 +1,8 @@
 package rfx.server.lambda;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.gson.Gson;
 
 import rfx.server.common.ContentTypePool;
@@ -10,6 +13,7 @@ public class SimpleHttpResponse {
 	protected String contentType = ContentTypePool.TEXT_UTF8;
 	protected String data;
 	protected long time;
+	protected Map<String, Object> headers;
 	
 	public SimpleHttpResponse() {
 		data = StringPool.BLANK;
@@ -18,6 +22,23 @@ public class SimpleHttpResponse {
 	public SimpleHttpResponse(String data) {
 		super();
 		this.data = data;
+	}
+	
+	public SimpleHttpResponse(String data, Map<String, Object> headers) {
+		super();
+		this.data = data;
+		this.headers = headers;
+	}
+	
+	public Map<String, Object> getHeaders() {
+		if(headers == null){
+			headers = new HashMap<>(0);
+		}
+		return headers;
+	}
+	
+	public void setHeaders(Map<String, Object> headers) {
+		this.headers = headers;
 	}
 	
 	public int getStatus() {
