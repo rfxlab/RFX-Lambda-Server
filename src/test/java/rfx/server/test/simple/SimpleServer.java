@@ -38,11 +38,16 @@ public class SimpleServer {
 			SimpleHttpResponse resp = new SimpleHttpResponse("Hello world !");
 			return resp;
 		});
+		
+		mapper.put("/ping", (SimpleHttpRequest req) -> {
+			SimpleHttpResponse resp = new SimpleHttpResponse("PONG");
+			return resp;
+		});
 
 		// the logic handler
 		Processor mainFunction = (SimpleHttpRequest req) -> {
 			String uri = req.getUri();
-			System.out.println("mainFunction: " + uri);
+			//System.out.println("mainFunction: " + uri);
 
 			Processor delegatedF = mapper.get(uri);
 			if (delegatedF != null) {
@@ -52,7 +57,7 @@ public class SimpleServer {
 			SimpleHttpResponse resp = new SimpleHttpResponse();
 			Map<String, List<String>> params = req.getParameters();
 
-			if (uri.contains("/compute") && params.containsKey("x") && params.containsKey("operator")) {
+			if (uri.startsWith("/compute") && params.containsKey("x") && params.containsKey("operator")) {
 				String operator = params.get("operator").get(0);
 				StringBuilder s = new StringBuilder();
 
@@ -81,13 +86,13 @@ public class SimpleServer {
 				int n = params.get("x").stream().mapToInt(f).reduce(op).getAsInt();
 				s.append("=").append(n);
 				resp.setData(s.toString());
-			}
+			}			
 			return resp;
 		};
 
 		// the decorator of output
 		Decorator formatingResult = resp -> {
-			System.out.println("formatingResult: " + resp.getData());
+			//System.out.println("formatingResult: " + resp.getData());
 			if (!resp.getData().isEmpty()) {
 				resp.setContentType(ContentTypePool.HTML_UTF8);
 				StringBuilder s = new StringBuilder();
