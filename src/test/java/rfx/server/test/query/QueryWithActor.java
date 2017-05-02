@@ -298,6 +298,6 @@ public class QueryWithActor {
 		printResults2(des, queryResult);
 				
 		System.out.println("Query time: " + millis);
-		actorSystem.shutdown();
+//		actorSystem.shutdown();
 	}
 }

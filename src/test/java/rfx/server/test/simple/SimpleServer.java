@@ -1,5 +1,6 @@
 package rfx.server.test.simple;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ public class SimpleServer {
 			SimpleHttpResponse resp = new SimpleHttpResponse("PONG");
 			return resp;
 		});
+	
 
 		// the logic handler
 		Processor mainFunction = (SimpleHttpRequest req) -> {
@@ -72,11 +74,11 @@ public class SimpleServer {
 					switch (operator) {
 					case "plus":
 						n = x1 + x2;
-						s.append(x1).append(" + ").append(x2);
+						s.append(" ").append(x1).append(" + ").append(x2);
 						break;
 					case "multiply":
 						n = x1 * x2;
-						s.append(x1).append(" * ").append(x2);
+						s.append(" ").append(x1).append(" * ").append(x2);
 						break;
 					default:
 						break;
@@ -84,7 +86,7 @@ public class SimpleServer {
 					return n;
 				};
 				int n = params.get("x").stream().mapToInt(f).reduce(op).getAsInt();
-				s.append("=").append(n);
+				s.append(" = ").append(n);
 				resp.setData(s.toString());
 			}			
 			return resp;

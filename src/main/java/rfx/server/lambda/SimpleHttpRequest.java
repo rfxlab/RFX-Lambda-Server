@@ -1,14 +1,15 @@
 package rfx.server.lambda;
 
 
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.cookie.Cookie;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.gson.Gson;
+
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.cookie.Cookie;
 
 public class SimpleHttpRequest {
 	protected String uri = "";
@@ -73,7 +74,11 @@ public class SimpleHttpRequest {
 
 	public void setParameters(Map<String, List<String>> parameters) {
 		this.parameters = parameters;
-	}	
+	}
+	
+	public List<String> getParamValues(String name){
+		return getParameters().getOrDefault(name, new ArrayList<>(0));
+	}
 
 	public Set<Cookie> getCookies() {
 		return cookies;
